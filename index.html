@@ -366,7 +366,7 @@
       return "バランス感覚タイプ";
     }
 
-    function submitDiagnosis() {
+    async function submitDiagnosis() {
       const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
 
       if (checked.length !== 3) {
@@ -389,7 +389,8 @@
 
       const textMessage = `≪あなたの感覚タイプ診断≫
 【選択した項目】
-・${selectedLabels.join('\n・')}
+・${selectedLabels.join('
+・')}
 
 【診断結果】
 ・${resultType}
@@ -397,10 +398,29 @@
 【タイプ説明】
 ${resultDescription}`;
 
-      if (typeof liff !== 'undefined' && typeof liff.isInClient === 'function' && liff.isInClient()) {
-        liff.sendMessages([{ type: 'text', text: textMessage }]).catch((err) => {
-          console.error('メッセージ送信失敗', err);
-        });
+      if (typeof liff === 'undefined') {
+        alert('LIFF SDKが読み込まれていないため、LINE送信はできません。');
+        return;
+      }
+
+      try {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        if (typeof liff.isInClient === 'function' && liff.isInClient()) {
+          await liff.sendMessages([{ type: 'text', text: textMessage }]);
+          alert('LINEに診断結果を送信しました。');
+          if (typeof liff.closeWindow === 'function') {
+            liff.closeWindow();
+          }
+        } else {
+          alert('LINEアプリ内で開くと診断結果を送信できます。');
+        }
+      } catch (err) {
+        console.error('メッセージ送信失敗', err);
+        alert('LINE送信に失敗しました。LIFF IDやチャネル設定をご確認ください。');
       }
     }
   </script>
