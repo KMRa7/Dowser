@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>あなたの感覚タイプ診断</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Noto Sans JP", sans-serif;
+      background: #f6f8f7;
+      margin: 0;
+      padding: 16px 10px 28px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #78c8a6, #5ba98d);
+      color: #fff;
+      padding: 22px 18px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 18px 16px 22px;
+    }
+
+    .intro {
+      background: #f2faf6;
+      border: 1px solid #d8eee3;
+      border-radius: 12px;
+      padding: 14px 14px;
+      margin-bottom: 18px;
+      line-height: 1.9;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    .section-label {
+      display: block;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      background: #5ba98d;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .section-label .sub {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 400;
+      color: #eefcf5;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .question-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e4e4e4;
+      border-radius: 12px;
+      padding: 12px 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .question-item:has(input:checked) {
+      border-color: #5ba98d;
+      background: #f2faf6;
+      box-shadow: 0 0 0 1px rgba(91, 169, 141, 0.15);
+    }
+
+    .question-item input[type="checkbox"] {
+      margin-top: 2px;
+      transform: scale(1.15);
+      accent-color: #5ba98d;
+      flex-shrink: 0;
+    }
+
+    .question-text {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.7;
+      background: #fff8e8;
+      border: 1px solid #f0dfb4;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+    }
+
+    .result-box {
+      display: none;
+      margin-top: 18px;
+      padding: 16px 14px;
+      border-radius: 14px;
+      background: #f7fbf9;
+      border: 1px solid #dbece4;
+    }
+
+    .result-box.active {
+      display: block;
+    }
+
+    .result-title {
+      font-size: 13px;
+      color: #5a7e6f;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .result-type {
+      font-size: 24px;
+      font-weight: 800;
+      color: #356b57;
+      margin-bottom: 10px;
+    }
+
+    .result-description {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #333;
+      white-space: pre-line;
+    }
+
+    .submit-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      background: #df6b7b;
+      color: #fff;
+      padding: 15px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .submit-button:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .helper {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .question-text,
+      .result-description {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>あなたの感覚タイプ診断</h1>
+    </div>
+
+    <div class="content">
+      <div class="intro">なんとなく気になる
+理由はわからないけれど惹かれる
+
+そんな感覚、ありませんか？
+
+実はそれ、
+あなたの中にある“感覚のクセ”かもしれません
+
+簡単なチェックで、
+あなたのタイプを知ることができます🌿</div>
+
+      <div class="section-label">
+        【質問（チェック式）】
+        <span class="sub">強く当てはまるものを3つ選んでください</span>
+      </div>
+
+      <div class="question-list">
+        <label class="question-item"><input type="checkbox" name="question" value="1"><span class="question-text">① 理由はないけど「これだ」と感じて決めることが多い</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="2"><span class="question-text">② なぜか予感が的中することが多い</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="3"><span class="question-text">③ 深く考える前に答えが浮かぶことがある</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="4"><span class="question-text">④ 色やデザインで気分が変わる</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="5"><span class="question-text">⑤ 説明する時、図や写真を使いたくなる</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="6"><span class="question-text">⑥ 頭の中にイメージが浮かんで決める</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="7"><span class="question-text">⑦ 人や場所の雰囲気に影響を受けやすい</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="8"><span class="question-text">⑧ 場所によって落ち着き方が違う</span></label>
+        <label class="question-item"><input type="checkbox" name="question" value="9"><span class="question-text">⑨ なんとなく居心地の悪い場所がわかる</span></label>
+      </div>
+
+      
+
+      <button class="submit-button" onclick="submitDiagnosis()">あなたのタイプを見てみる</button>
+
+      <div class="helper">結果はこちら</div>
+
+      <div id="resultBox" class="result-box">
+        <div class="result-title">診断結果</div>
+        <div id="resultType" class="result-type"></div>
+        <div id="resultDescription" class="result-description"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+  <script>
+    const typeDescriptions = {
+      "直感タイプ": `診断お疲れさまでした🌿
+
+あなたは【直感タイプ】の傾向があります
+
+もしかすると、
+
+「なんとなく当たることがある」
+そんな感覚、ありませんか？
+
+実はそれ、
+すでにあなたが持っている感覚です
+
+👉このあと5日間で、
+その感覚を少しずつ整理していきます
+
+【直感タイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
+      "イメージタイプ": `診断お疲れさまでした🌿
+
+あなたは【イメージタイプ】の傾向があります
+
+もしかすると
+
+・同じ言葉や数字をよく見る
+・なぜか気になるデザインや形がある
+
+そんなことはありませんか？
+
+あなたは、
+イメージを通して世界を理解する力を持っています
+
+👉これから5日間で
+その感覚に少しずつ触れていきます
+
+【イメージタイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
+      "空間共鳴タイプ": `診断お疲れさまでした🌿
+
+あなたは【空間共鳴タイプ】の傾向があります
+
+もしかすると
+
+・場所によって落ち着き方が違う
+・なぜか疲れる場所がある
+
+そんな感覚、ありませんか？
+
+実はそれ、
+あなたが空間の影響を受け取りやすいサインかもしれません
+
+👉これから5日間で
+その感覚を少しずつ整理していきます
+
+【空間共鳴タイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
+      "バランス感覚タイプ": `診断お疲れさまでした🌿
+
+あなたは【バランス感覚タイプ】の傾向があります
+
+直感・イメージ・空間への感受性をバランスよく持っているタイプです。
+
+その時々に必要な感覚を自然に使い分けられるのが、あなたの魅力かもしれません。`
+    };
+
+    const questionGroups = {
+      1: "直感タイプ",
+      2: "直感タイプ",
+      3: "直感タイプ",
+      4: "イメージタイプ",
+      5: "イメージタイプ",
+      6: "イメージタイプ",
+      7: "空間共鳴タイプ",
+      8: "空間共鳴タイプ",
+      9: "空間共鳴タイプ"
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const checkboxes = Array.from(document.querySelectorAll('input[name="question"]'));
+
+      function enforceSelectionLimit(event) {
+        const checked = checkboxes.filter((cb) => cb.checked);
+
+        if (checked.length > 3) {
+          event.target.checked = false;
+          alert('選択は3つまでです。');
+        }
+
+        const checkedCount = checkboxes.filter((cb) => cb.checked).length;
+        checkboxes.forEach((checkbox) => {
+          checkbox.disabled = !checkbox.checked && checkedCount >= 3;
+        });
+      }
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', enforceSelectionLimit);
+      });
+
+      enforceSelectionLimit({ target: { checked: false } });
+
+      if (typeof liff !== 'undefined') {
+        liff.init({
+          liffId: '2008510250-NRgn9a26'
+        }).catch((err) => {
+          console.error('LIFF初期化失敗', err);
+        });
+      }
+    });
+
+    function getDiagnosisResult(selectedValues) {
+      const counts = {
+        "直感タイプ": 0,
+        "イメージタイプ": 0,
+        "空間共鳴タイプ": 0
+      };
+
+      selectedValues.forEach((value) => {
+        const type = questionGroups[value];
+        if (type) counts[type]++;
+      });
+
+      if (counts["直感タイプ"] >= 2) return "直感タイプ";
+      if (counts["イメージタイプ"] >= 2) return "イメージタイプ";
+      if (counts["空間共鳴タイプ"] >= 2) return "空間共鳴タイプ";
+      return "バランス感覚タイプ";
+    }
+
+    function submitDiagnosis() {
+      const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
+
+      if (checked.length !== 3) {
+        alert('強く当てはまるものを3つ選んでください。');
+        return;
+      }
+
+      const selectedValues = checked.map((item) => Number(item.value));
+      const resultType = getDiagnosisResult(selectedValues);
+      const resultDescription = typeDescriptions[resultType] || '';
+
+      document.getElementById('resultType').textContent = resultType;
+      document.getElementById('resultDescription').textContent = resultDescription;
+      document.getElementById('resultBox').classList.add('active');
+
+      const selectedLabels = checked.map((item) => {
+        const textNode = item.parentElement.querySelector('.question-text');
+        return textNode ? textNode.textContent.trim() : '';
+      }).filter(Boolean);
+
+      const textMessage = `≪あなたの感覚タイプ診断≫
+【選択した項目】
+・${selectedLabels.join('\n・')}
+
+【診断結果】
+・${resultType}
+
+【タイプ説明】
+${resultDescription}`;
+
+      if (typeof liff !== 'undefined' && typeof liff.isInClient === 'function' && liff.isInClient()) {
+        liff.sendMessages([{ type: 'text', text: textMessage }]).catch((err) => {
+          console.error('メッセージ送信失敗', err);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
