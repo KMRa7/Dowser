@@ -166,6 +166,35 @@
       margin-top: 8px;
     }
 
+    .send-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      background: #06c755;
+      color: #fff;
+      padding: 15px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .send-button.active {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
     .submit-button:hover {
       opacity: 0.92;
       transform: translateY(-1px);
@@ -228,11 +257,14 @@
 
       
 
-      <button class="submit-button" onclick="submitDiagnosis()">あなたのタイプを見てみる</button>
+      <button class="submit-button" onclick="startDiagnosis()">あなたのタイプを見てみる</button>
+
+      <div id="loading" class="loading">診断中...</div>
 
       <div class="helper">結果はこちら</div>
 
       <div id="resultBox" class="result-box">
+        <button id="sendButton" class="send-button" onclick="sendToLine()">LINEに送る</button>
         <div class="result-title">診断結果</div>
         <div id="resultType" class="result-type"></div>
         <div id="resultDescription" class="result-description"></div>
@@ -341,7 +373,7 @@
 
       if (typeof liff !== 'undefined') {
         liff.init({
-          liffId: '2009684850-jcgBkTJo'
+          liffId: '2008510250-NRgn9a26'
         }).catch((err) => {
           console.error('LIFF初期化失敗', err);
         });
@@ -366,13 +398,62 @@
       return "バランス感覚タイプ";
     }
 
-    function submitDiagnosis() {
+    async let latestMessage = '';
+
+    function startDiagnosis() {
       const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
 
       if (checked.length !== 3) {
         alert('強く当てはまるものを3つ選んでください。');
         return;
       }
+
+      document.getElementById('loading').classList.add('active');
+
+      setTimeout(() => {
+        showResult();
+      }, 800);
+    }
+
+    function showResult() {
+      document.getElementById('loading').classList.remove('active');
+
+      const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
+      const selectedValues = checked.map((item) => Number(item.value));
+
+      const resultType = getDiagnosisResult(selectedValues);
+      const resultDescription = typeDescriptions[resultType] || '';
+
+      document.getElementById('resultType').textContent = resultType;
+      document.getElementById('resultDescription').textContent = resultDescription;
+      document.getElementById('resultBox').classList.add('active');
+      document.getElementById('sendButton').classList.add('active');
+
+      const selectedLabels = checked.map((item) => {
+        const textNode = item.parentElement.querySelector('.question-text');
+        return textNode ? textNode.textContent.trim() : '';
+      }).filter(Boolean);
+
+      latestMessage = `≪あなたの感覚タイプ診断≫\n【選択した項目】\n・${selectedLabels.join('\n・')}\n\n【診断結果】\n・${resultType}\n\n【タイプ説明】\n${resultDescription}`;
+    }
+
+    function sendToLine() {
+      if (!latestMessage) return;
+
+      if (typeof liff !== 'undefined' && typeof liff.isInClient === 'function' && liff.isInClient()) {
+        liff.sendMessages([{ type: 'text', text: latestMessage }])
+          .then(() => {
+            alert('LINEに送信しました');
+            liff.closeWindow();
+          })
+          .catch((err) => {
+            console.error(err);
+            alert('送信失敗');
+          });
+      } else {
+        alert('LINEアプリ内で開いてください');
+      }
+    }
 
       const selectedValues = checked.map((item) => Number(item.value));
       const resultType = getDiagnosisResult(selectedValues);
@@ -389,7 +470,8 @@
 
       const textMessage = `≪あなたの感覚タイプ診断≫
 【選択した項目】
-・${selectedLabels.join('\n・')}
+・${selectedLabels.join('
+・')}
 
 【診断結果】
 ・${resultType}
@@ -397,10 +479,29 @@
 【タイプ説明】
 ${resultDescription}`;
 
-      if (typeof liff !== 'undefined' && typeof liff.isInClient === 'function' && liff.isInClient()) {
-        liff.sendMessages([{ type: 'text', text: textMessage }]).catch((err) => {
-          console.error('メッセージ送信失敗', err);
-        });
+      if (typeof liff === 'undefined') {
+        alert('LIFF SDKが読み込まれていないため、LINE送信はできません。');
+        return;
+      }
+
+      try {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        if (typeof liff.isInClient === 'function' && liff.isInClient()) {
+          await liff.sendMessages([{ type: 'text', text: textMessage }]);
+          alert('LINEに診断結果を送信しました。');
+          if (typeof liff.closeWindow === 'function') {
+            liff.closeWindow();
+          }
+        } else {
+          alert('LINEアプリ内で開くと診断結果を送信できます。');
+        }
+      } catch (err) {
+        console.error('メッセージ送信失敗', err);
+        alert('LINE送信に失敗しました。LIFF IDやチャネル設定をご確認ください。');
       }
     }
   </script>
