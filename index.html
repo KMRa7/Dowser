@@ -118,17 +118,21 @@
       margin-bottom: 16px;
     }
 
-    .result-box {
+    .result-screen {
       display: none;
-      margin-top: 18px;
+      padding: 18px 16px 22px;
+    }
+
+    .result-screen.active {
+      display: block;
+    }
+
+    .result-box {
       padding: 16px 14px;
       border-radius: 14px;
       background: #f7fbf9;
       border: 1px solid #dbece4;
-    }
-
-    .result-box.active {
-      display: block;
+      margin-top: 12px;
     }
 
     .result-title {
@@ -176,23 +180,39 @@
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 10px;
-      display: none;
-    }
-
-    .send-button.active {
+      margin-top: 18px;
       display: block;
     }
 
     .loading {
       display: none;
       text-align: center;
-      padding: 20px;
-      font-size: 14px;
+      padding: 34px 20px;
     }
 
     .loading.active {
       display: block;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 12px;
+      border: 4px solid #d9efe6;
+      border-top: 4px solid #5ba98d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: #5a7e6f;
+      font-weight: 600;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .submit-button:hover {
@@ -226,7 +246,7 @@
       <h1>あなたの感覚タイプ診断</h1>
     </div>
 
-    <div class="content">
+    <div id="questionScreen" class="content">
       <div class="intro">なんとなく気になる
 理由はわからないけれど惹かれる
 
@@ -255,21 +275,23 @@
         <label class="question-item"><input type="checkbox" name="question" value="9"><span class="question-text">⑨ なんとなく居心地の悪い場所がわかる</span></label>
       </div>
 
-      
-
       <button class="submit-button" onclick="startDiagnosis()">あなたのタイプを見てみる</button>
 
-      <div id="loading" class="loading">診断中...</div>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">診断中...</div>
+      </div>
+    </div>
 
-      <div class="helper">結果はこちら</div>
-
+    <div id="resultScreen" class="result-screen">
+      <div class="helper">診断結果</div>
       <div id="resultBox" class="result-box">
-        <button id="sendButton" class="send-button" onclick="sendToLine()">LINEに送る</button>
-        <div class="result-title">診断結果</div>
         <div id="resultType" class="result-type"></div>
         <div id="resultDescription" class="result-description"></div>
       </div>
+      <button id="sendButton" class="send-button" onclick="sendToLine()">LINEに送る</button>
     </div>
+  </div>
   </div>
 
   <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
@@ -422,16 +444,14 @@
       }
 
       const loading = document.getElementById('loading');
-      const resultBox = document.getElementById('resultBox');
-      const sendButton = document.getElementById('sendButton');
+      const questionScreen = document.getElementById('questionScreen');
 
       loading.classList.add('active');
-      resultBox.classList.remove('active');
-      sendButton.classList.remove('active');
 
       setTimeout(() => {
+        questionScreen.style.display = 'none';
         showResult();
-      }, 800);
+      }, 900);
     }
 
     function showResult() {
@@ -444,15 +464,23 @@
 
       document.getElementById('resultType').textContent = resultType;
       document.getElementById('resultDescription').textContent = resultDescription;
-      document.getElementById('resultBox').classList.add('active');
-      document.getElementById('sendButton').classList.add('active');
+      document.getElementById('resultScreen').classList.add('active');
 
       const selectedLabels = checked.map((item) => {
         const textNode = item.parentElement.querySelector('.question-text');
         return textNode ? textNode.textContent.trim() : '';
       }).filter(Boolean);
 
-      latestMessage = `≪あなたの感覚タイプ診断≫\n【選択した項目】\n・${selectedLabels.join('\n・')}\n\n【診断結果】\n・${resultType}\n\n【タイプ説明】\n${resultDescription}`;
+      latestMessage = `≪あなたの感覚タイプ診断≫
+【選択した項目】
+・${selectedLabels.join('
+・')}
+
+【診断結果】
+・${resultType}
+
+【タイプ説明】
+${resultDescription}`;
     }
 
     async function sendToLine() {
