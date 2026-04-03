@@ -36,7 +36,8 @@
       font-weight: 700;
     }
 
-    .content {
+    .content,
+    .result-screen {
       padding: 18px 16px 22px;
     }
 
@@ -44,7 +45,7 @@
       background: #f2faf6;
       border: 1px solid #d8eee3;
       border-radius: 12px;
-      padding: 14px 14px;
+      padding: 14px;
       margin-bottom: 18px;
       line-height: 1.9;
       font-size: 14px;
@@ -84,15 +85,19 @@
       background: #fafafa;
       border: 1px solid #e4e4e4;
       border-radius: 12px;
-      padding: 12px 12px;
+      padding: 12px;
       transition: all 0.2s ease;
       cursor: pointer;
     }
 
-    .question-item:has(input:checked) {
+    .question-item.selected {
       border-color: #5ba98d;
       background: #f2faf6;
       box-shadow: 0 0 0 1px rgba(91, 169, 141, 0.15);
+    }
+
+    .question-item.disabled {
+      opacity: 0.55;
     }
 
     .question-item input[type="checkbox"] {
@@ -107,20 +112,69 @@
       line-height: 1.7;
     }
 
-    .note {
-      font-size: 12px;
-      color: #666;
-      line-height: 1.7;
-      background: #fff8e8;
-      border: 1px solid #f0dfb4;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
+    .submit-button,
+    .send-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      color: #fff;
+      padding: 15px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
-    .result-screen {
+    .submit-button {
+      background: #df6b7b;
+      margin-top: 8px;
+    }
+
+    .send-button {
+      background: #06c755;
+      margin-top: 18px;
+    }
+
+    .helper {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .loading-overlay {
       display: none;
-      padding: 18px 16px 22px;
+      min-height: 360px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 40px 20px;
+      box-sizing: border-box;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #d9efe6;
+      border-top: 4px solid #5ba98d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: #5a7e6f;
+      font-weight: 600;
+    }
+
+    .result-screen,
+    .loading-overlay {
+      display: none;
     }
 
     .result-screen.active {
@@ -133,13 +187,6 @@
       background: #f7fbf9;
       border: 1px solid #dbece4;
       margin-top: 12px;
-    }
-
-    .result-title {
-      font-size: 13px;
-      color: #5a7e6f;
-      margin-bottom: 6px;
-      font-weight: 700;
     }
 
     .result-type {
@@ -156,76 +203,9 @@
       white-space: pre-line;
     }
 
-    .submit-button {
-      width: 100%;
-      border: none;
-      border-radius: 999px;
-      background: #df6b7b;
-      color: #fff;
-      padding: 15px 16px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-      margin-top: 8px;
-    }
-
-    .send-button {
-      width: 100%;
-      border: none;
-      border-radius: 999px;
-      background: #06c755;
-      color: #fff;
-      padding: 15px 16px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 18px;
-      display: block;
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 34px 20px;
-    }
-
-    .loading.active {
-      display: block;
-    }
-
-    .spinner {
-      width: 42px;
-      height: 42px;
-      margin: 0 auto 12px;
-      border: 4px solid #d9efe6;
-      border-top: 4px solid #5ba98d;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    .loading-text {
-      font-size: 14px;
-      color: #5a7e6f;
-      font-weight: 600;
-    }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    }
-
-    .submit-button:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
-
-    .helper {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-      line-height: 1.6;
     }
 
     @media (max-width: 480px) {
@@ -263,7 +243,7 @@
         <span class="sub">強く当てはまるものを3つ選んでください</span>
       </div>
 
-      <div class="question-list">
+      <div class="question-list" id="questionList">
         <label class="question-item"><input type="checkbox" name="question" value="1"><span class="question-text">① 理由はないけど「これだ」と感じて決めることが多い</span></label>
         <label class="question-item"><input type="checkbox" name="question" value="2"><span class="question-text">② なぜか予感が的中することが多い</span></label>
         <label class="question-item"><input type="checkbox" name="question" value="3"><span class="question-text">③ 深く考える前に答えが浮かぶことがある</span></label>
@@ -275,29 +255,30 @@
         <label class="question-item"><input type="checkbox" name="question" value="9"><span class="question-text">⑨ なんとなく居心地の悪い場所がわかる</span></label>
       </div>
 
-      <button class="submit-button" onclick="startDiagnosis()">あなたのタイプを見てみる</button>
+      <button id="diagnoseButton" class="submit-button" type="button">あなたのタイプを見てみる</button>
+    </div>
 
-      <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <div class="loading-text">診断中...</div>
-      </div>
+    <div id="loadingScreen" class="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">診断中...</div>
     </div>
 
     <div id="resultScreen" class="result-screen">
       <div class="helper">診断結果</div>
-      <div id="resultBox" class="result-box">
+      <div class="result-box">
         <div id="resultType" class="result-type"></div>
         <div id="resultDescription" class="result-description"></div>
       </div>
-      <button id="sendButton" class="send-button" onclick="sendToLine()">LINEに送る</button>
+      <button id="sendButton" class="send-button" type="button">LINEに送る</button>
     </div>
-  </div>
   </div>
 
   <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
   <script>
+    const LIFF_ID = '2009684850-jcgBkTJo';
+
     const typeDescriptions = {
-      "直感タイプ": `診断お疲れさまでした🌿
+      '直感タイプ': `診断お疲れさまでした🌿
 
 あなたは【直感タイプ】の傾向があります
 
@@ -313,7 +294,7 @@
 その感覚を少しずつ整理していきます
 
 【直感タイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
-      "イメージタイプ": `診断お疲れさまでした🌿
+      'イメージタイプ': `診断お疲れさまでした🌿
 
 あなたは【イメージタイプ】の傾向があります
 
@@ -331,7 +312,7 @@
 その感覚に少しずつ触れていきます
 
 【イメージタイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
-      "空間共鳴タイプ": `診断お疲れさまでした🌿
+      '空間共鳴タイプ': `診断お疲れさまでした🌿
 
 あなたは【空間共鳴タイプ】の傾向があります
 
@@ -349,7 +330,7 @@
 その感覚を少しずつ整理していきます
 
 【空間共鳴タイプ】の方専用の内容が５回に分かれて届きますのでお楽しみに✨`,
-      "バランス感覚タイプ": `診断お疲れさまでした🌿
+      'バランス感覚タイプ': `診断お疲れさまでした🌿
 
 あなたは【バランス感覚タイプ】の傾向があります
 
@@ -359,138 +340,123 @@
     };
 
     const questionGroups = {
-      1: "直感タイプ",
-      2: "直感タイプ",
-      3: "直感タイプ",
-      4: "イメージタイプ",
-      5: "イメージタイプ",
-      6: "イメージタイプ",
-      7: "空間共鳴タイプ",
-      8: "空間共鳴タイプ",
-      9: "空間共鳴タイプ"
+      1: '直感タイプ',
+      2: '直感タイプ',
+      3: '直感タイプ',
+      4: 'イメージタイプ',
+      5: 'イメージタイプ',
+      6: 'イメージタイプ',
+      7: '空間共鳴タイプ',
+      8: '空間共鳴タイプ',
+      9: '空間共鳴タイプ'
     };
 
     let latestMessage = '';
     let liffReady = false;
 
-    document.addEventListener('DOMContentLoaded', async function () {
-      const checkboxes = Array.from(document.querySelectorAll('input[name="question"]'));
+    const checkboxes = Array.from(document.querySelectorAll('input[name="question"]'));
+    const diagnoseButton = document.getElementById('diagnoseButton');
+    const sendButton = document.getElementById('sendButton');
+    const questionScreen = document.getElementById('questionScreen');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const resultTypeEl = document.getElementById('resultType');
+    const resultDescriptionEl = document.getElementById('resultDescription');
 
-      function syncCheckboxState() {
-        const checkedCount = checkboxes.filter((cb) => cb.checked).length;
-        checkboxes.forEach((checkbox) => {
-          checkbox.disabled = !checkbox.checked && checkedCount >= 3;
-        });
-      }
+    function getCheckedBoxes() {
+      return checkboxes.filter((cb) => cb.checked);
+    }
 
-      function handleCheckboxChange(event) {
-        const checkedCount = checkboxes.filter((cb) => cb.checked).length;
-        if (checkedCount > 3) {
+    function syncCheckboxState() {
+      const checkedCount = getCheckedBoxes().length;
+
+      checkboxes.forEach((checkbox) => {
+        const item = checkbox.closest('.question-item');
+        checkbox.disabled = !checkbox.checked && checkedCount >= 3;
+        item.classList.toggle('selected', checkbox.checked);
+        item.classList.toggle('disabled', checkbox.disabled);
+      });
+    }
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', (event) => {
+        if (getCheckedBoxes().length > 3) {
           event.target.checked = false;
           alert('選択は3つまでです。');
         }
         syncCheckboxState();
-      }
-
-      checkboxes.forEach((checkbox) => {
-        checkbox.addEventListener('change', handleCheckboxChange);
-        checkbox.addEventListener('click', function (event) {
-          const checkedCount = checkboxes.filter((cb) => cb.checked).length;
-          if (!checkbox.checked && checkedCount >= 3) {
-            event.preventDefault();
-            alert('選択は3つまでです。');
-          }
-        });
       });
-
-      syncCheckboxState();
-
-      if (typeof liff !== 'undefined') {
-        try {
-          await liff.init({
-            liffId: '2009684850-jcgBkTJo'
-          });
-          liffReady = true;
-        } catch (err) {
-          console.error('LIFF初期化失敗', err);
-        }
-      }
     });
 
     function getDiagnosisResult(selectedValues) {
       const counts = {
-        "直感タイプ": 0,
-        "イメージタイプ": 0,
-        "空間共鳴タイプ": 0
+        '直感タイプ': 0,
+        'イメージタイプ': 0,
+        '空間共鳴タイプ': 0
       };
 
       selectedValues.forEach((value) => {
         const type = questionGroups[value];
-        if (type) counts[type]++;
+        if (type) counts[type] += 1;
       });
 
-      if (counts["直感タイプ"] >= 2) return "直感タイプ";
-      if (counts["イメージタイプ"] >= 2) return "イメージタイプ";
-      if (counts["空間共鳴タイプ"] >= 2) return "空間共鳴タイプ";
-      return "バランス感覚タイプ";
+      if (counts['直感タイプ'] >= 2) return '直感タイプ';
+      if (counts['イメージタイプ'] >= 2) return 'イメージタイプ';
+      if (counts['空間共鳴タイプ'] >= 2) return '空間共鳴タイプ';
+      return 'バランス感覚タイプ';
+    }
+
+    async function initLiff() {
+      if (typeof liff === 'undefined') return;
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        liffReady = true;
+      } catch (error) {
+        console.error('LIFF初期化失敗', error);
+      }
     }
 
     function startDiagnosis() {
-      const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
-
+      const checked = getCheckedBoxes();
       if (checked.length !== 3) {
         alert('強く当てはまるものを3つ選んでください。');
         return;
       }
 
-      const loading = document.getElementById('loading');
-      const questionScreen = document.getElementById('questionScreen');
+      questionScreen.style.display = 'none';
+      resultScreen.classList.remove('active');
+      loadingScreen.classList.add('active');
 
-      loading.classList.add('active');
-
-      setTimeout(() => {
-        questionScreen.style.display = 'none';
-        showResult();
+      window.setTimeout(() => {
+        showResult(checked);
       }, 900);
     }
 
-    function showResult() {
-      document.getElementById('loading').classList.remove('active');
-
-      const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
+    function showResult(checked) {
       const selectedValues = checked.map((item) => Number(item.value));
       const resultType = getDiagnosisResult(selectedValues);
       const resultDescription = typeDescriptions[resultType] || '';
+      const selectedLabels = checked
+        .map((item) => item.closest('.question-item').querySelector('.question-text').textContent.trim())
+        .filter(Boolean);
 
-      document.getElementById('resultType').textContent = resultType;
-      document.getElementById('resultDescription').textContent = resultDescription;
-      document.getElementById('resultScreen').classList.add('active');
+      latestMessage = `≪あなたの感覚タイプ診断≫\n【選択した項目】\n・${selectedLabels.join('\n・')}\n\n【診断結果】\n・${resultType}\n\n【タイプ説明】\n${resultDescription}`;
 
-      const selectedLabels = checked.map((item) => {
-        const textNode = item.parentElement.querySelector('.question-text');
-        return textNode ? textNode.textContent.trim() : '';
-      }).filter(Boolean);
+      resultTypeEl.textContent = resultType;
+      resultDescriptionEl.textContent = resultDescription;
 
-      latestMessage = `≪あなたの感覚タイプ診断≫
-【選択した項目】
-・${selectedLabels.join('
-・')}
-
-【診断結果】
-・${resultType}
-
-【タイプ説明】
-${resultDescription}`;
+      loadingScreen.classList.remove('active');
+      resultScreen.classList.add('active');
     }
 
     async function sendToLine() {
       if (!latestMessage) {
-        alert('先に診断結果を表示してください。');
+        alert('先に診断してください。');
         return;
       }
 
-      if (typeof liff === 'undefined' || !liffReady) {
-        alert('LIFFの初期化が完了していません。設定をご確認ください。');
+      if (!liffReady) {
+        alert('LIFFの初期化が完了していません。');
         return;
       }
 
@@ -500,20 +466,24 @@ ${resultDescription}`;
           return;
         }
 
-        if (typeof liff.isInClient === 'function' && liff.isInClient()) {
-          await liff.sendMessages([{ type: 'text', text: latestMessage }]);
-          alert('LINEに送信しました');
-          if (typeof liff.closeWindow === 'function') {
-            liff.closeWindow();
-          }
-        } else {
+        if (!liff.isInClient()) {
           alert('LINEアプリ内で開くと送信できます。');
+          return;
         }
-      } catch (err) {
-        console.error('メッセージ送信失敗', err);
-        alert('送信に失敗しました。LIFF IDやチャネル設定をご確認ください。');
+
+        await liff.sendMessages([{ type: 'text', text: latestMessage }]);
+        alert('LINEに送信しました');
+        liff.closeWindow();
+      } catch (error) {
+        console.error('送信失敗', error);
+        alert('LINE送信に失敗しました。LIFF設定をご確認ください。');
       }
     }
+
+    diagnoseButton.addEventListener('click', startDiagnosis);
+    sendButton.addEventListener('click', sendToLine);
+    syncCheckboxState();
+    initLiff();
   </script>
 </body>
 </html>
