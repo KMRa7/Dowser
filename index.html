@@ -348,35 +348,50 @@
       9: "空間共鳴タイプ"
     };
 
-    document.addEventListener('DOMContentLoaded', function () {
+    let latestMessage = '';
+    let liffReady = false;
+
+    document.addEventListener('DOMContentLoaded', async function () {
       const checkboxes = Array.from(document.querySelectorAll('input[name="question"]'));
 
-      function enforceSelectionLimit(event) {
-        const checked = checkboxes.filter((cb) => cb.checked);
-
-        if (checked.length > 3) {
-          event.target.checked = false;
-          alert('選択は3つまでです。');
-        }
-
+      function syncCheckboxState() {
         const checkedCount = checkboxes.filter((cb) => cb.checked).length;
         checkboxes.forEach((checkbox) => {
           checkbox.disabled = !checkbox.checked && checkedCount >= 3;
         });
       }
 
+      function handleCheckboxChange(event) {
+        const checkedCount = checkboxes.filter((cb) => cb.checked).length;
+        if (checkedCount > 3) {
+          event.target.checked = false;
+          alert('選択は3つまでです。');
+        }
+        syncCheckboxState();
+      }
+
       checkboxes.forEach((checkbox) => {
-        checkbox.addEventListener('change', enforceSelectionLimit);
+        checkbox.addEventListener('change', handleCheckboxChange);
+        checkbox.addEventListener('click', function (event) {
+          const checkedCount = checkboxes.filter((cb) => cb.checked).length;
+          if (!checkbox.checked && checkedCount >= 3) {
+            event.preventDefault();
+            alert('選択は3つまでです。');
+          }
+        });
       });
 
-      enforceSelectionLimit({ target: { checked: false } });
+      syncCheckboxState();
 
       if (typeof liff !== 'undefined') {
-        liff.init({
-          liffId: '2008510250-NRgn9a26'
-        }).catch((err) => {
+        try {
+          await liff.init({
+            liffId: '2009684850-jcgBkTJo'
+          });
+          liffReady = true;
+        } catch (err) {
           console.error('LIFF初期化失敗', err);
-        });
+        }
       }
     });
 
@@ -398,8 +413,6 @@
       return "バランス感覚タイプ";
     }
 
-    async let latestMessage = '';
-
     function startDiagnosis() {
       const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
 
@@ -408,7 +421,13 @@
         return;
       }
 
-      document.getElementById('loading').classList.add('active');
+      const loading = document.getElementById('loading');
+      const resultBox = document.getElementById('resultBox');
+      const sendButton = document.getElementById('sendButton');
+
+      loading.classList.add('active');
+      resultBox.classList.remove('active');
+      sendButton.classList.remove('active');
 
       setTimeout(() => {
         showResult();
@@ -420,7 +439,6 @@
 
       const checked = Array.from(document.querySelectorAll('input[name="question"]:checked'));
       const selectedValues = checked.map((item) => Number(item.value));
-
       const resultType = getDiagnosisResult(selectedValues);
       const resultDescription = typeDescriptions[resultType] || '';
 
@@ -437,50 +455,14 @@
       latestMessage = `≪あなたの感覚タイプ診断≫\n【選択した項目】\n・${selectedLabels.join('\n・')}\n\n【診断結果】\n・${resultType}\n\n【タイプ説明】\n${resultDescription}`;
     }
 
-    function sendToLine() {
-      if (!latestMessage) return;
-
-      if (typeof liff !== 'undefined' && typeof liff.isInClient === 'function' && liff.isInClient()) {
-        liff.sendMessages([{ type: 'text', text: latestMessage }])
-          .then(() => {
-            alert('LINEに送信しました');
-            liff.closeWindow();
-          })
-          .catch((err) => {
-            console.error(err);
-            alert('送信失敗');
-          });
-      } else {
-        alert('LINEアプリ内で開いてください');
+    async function sendToLine() {
+      if (!latestMessage) {
+        alert('先に診断結果を表示してください。');
+        return;
       }
-    }
 
-      const selectedValues = checked.map((item) => Number(item.value));
-      const resultType = getDiagnosisResult(selectedValues);
-      const resultDescription = typeDescriptions[resultType] || '';
-
-      document.getElementById('resultType').textContent = resultType;
-      document.getElementById('resultDescription').textContent = resultDescription;
-      document.getElementById('resultBox').classList.add('active');
-
-      const selectedLabels = checked.map((item) => {
-        const textNode = item.parentElement.querySelector('.question-text');
-        return textNode ? textNode.textContent.trim() : '';
-      }).filter(Boolean);
-
-      const textMessage = `≪あなたの感覚タイプ診断≫
-【選択した項目】
-・${selectedLabels.join('
-・')}
-
-【診断結果】
-・${resultType}
-
-【タイプ説明】
-${resultDescription}`;
-
-      if (typeof liff === 'undefined') {
-        alert('LIFF SDKが読み込まれていないため、LINE送信はできません。');
+      if (typeof liff === 'undefined' || !liffReady) {
+        alert('LIFFの初期化が完了していません。設定をご確認ください。');
         return;
       }
 
@@ -491,17 +473,17 @@ ${resultDescription}`;
         }
 
         if (typeof liff.isInClient === 'function' && liff.isInClient()) {
-          await liff.sendMessages([{ type: 'text', text: textMessage }]);
-          alert('LINEに診断結果を送信しました。');
+          await liff.sendMessages([{ type: 'text', text: latestMessage }]);
+          alert('LINEに送信しました');
           if (typeof liff.closeWindow === 'function') {
             liff.closeWindow();
           }
         } else {
-          alert('LINEアプリ内で開くと診断結果を送信できます。');
+          alert('LINEアプリ内で開くと送信できます。');
         }
       } catch (err) {
         console.error('メッセージ送信失敗', err);
-        alert('LINE送信に失敗しました。LIFF IDやチャネル設定をご確認ください。');
+        alert('送信に失敗しました。LIFF IDやチャネル設定をご確認ください。');
       }
     }
   </script>
